@@ -22,3 +22,19 @@ class Game(override val deck: List<Card>,
     }
   }
 }
+
+class DeckFactory(private val shuffle: (MutableList<out Any>) -> Unit) {
+
+  fun create(): List<Card> {
+    val colorCount = 5
+    val numbers = listOf(1, 1, 1, 2, 2, 3, 3, 4, 4, 5)
+    val deck = mutableListOf<Card>()
+    for (color in 0 until colorCount) {
+      (0 until numbers.size)
+          .map { numbers[it] }
+          .mapTo(deck) { Card(color, it) }
+    }
+    shuffle(deck)
+    return deck
+  }
+}
