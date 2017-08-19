@@ -63,6 +63,15 @@ class GameTest {
         .then_throw_an_illegal_argument_exception()
   }
 
+  @Test
+  fun apply_an_action_with_ended_game_throws_an_illegal_state_exception() {
+    GameBuilder()
+        .with_remaining_turn(0)
+        .build()
+        .when_discard_card(0)
+        .then_throw_an_illegal_state_exception()
+  }
+
   class GameBuilder {
     var deck: List<Card> = emptyList()
     var hands: List<Hand> = emptyList()
@@ -94,6 +103,22 @@ class GameTest {
   class Assertions(var game: Hanabi?) {
     private var exception: Throwable? = null
 
+    fun when_play_card(i: Int): Assertions {
+      return apply(ActionPlay(i))
+    }
+
+    fun when_discard_card(i: Int): Assertions {
+      return apply(ActionDiscard(i))
+    }
+
+    fun when_gives_a_color_hint(player: Int, color: Int): Assertions {
+      return apply(ActionHintColor(player, color))
+    }
+
+    fun when_gives_a_number_hint(player: Int, number: Int): Assertions {
+      return apply(ActionHintNumber(player, number))
+    }
+
     fun when_apply(action: Hanabi.Action): Assertions {
       return apply(action)
     }
@@ -120,6 +145,10 @@ class GameTest {
 
     fun then_throw_an_illegal_argument_exception(): Assertions {
       return exception(IllegalArgumentException::class.java)
+    }
+
+    fun then_throw_an_illegal_state_exception(): Assertions {
+      return exception(IllegalStateException::class.java)
     }
 
     private fun exception(clazz: Class<out Throwable>): Assertions {

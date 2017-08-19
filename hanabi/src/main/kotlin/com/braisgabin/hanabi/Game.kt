@@ -10,6 +10,9 @@ class Game(override val deck: List<Card>,
     get() = fails >= 3 || table.sum() >= 25 || if (remainingTurns == null) false else remainingTurns <= 0
 
   override fun apply(action: Hanabi.Action): Hanabi {
+    if (ended) {
+      throw IllegalStateException("The game is over")
+    }
     return when (action) {
       is ActionPlay -> TODO("not implemented")
       is ActionDiscard -> TODO("not implemented")
