@@ -1,6 +1,7 @@
 package com.braisgabin.hanabi
 
 import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.instanceOf
 import org.junit.Assert.assertThat
 import org.junit.Test
 
@@ -54,6 +55,14 @@ class GameTest {
         .then_is_not_ended()
   }
 
+  @Test
+  fun apply_unknown_action_throws_an_illegal_argument_exception() {
+    GameBuilder()
+        .build()
+        .when_apply(object : Hanabi.Action {})
+        .then_throw_an_illegal_argument_exception()
+  }
+
   class GameBuilder {
     var deck: List<Card> = emptyList()
     var hands: List<Hand> = emptyList()
@@ -82,15 +91,39 @@ class GameTest {
     }
   }
 
-  class Assertions(val game: Hanabi) {
+  class Assertions(var game: Hanabi?) {
+    private var exception: Throwable? = null
+
+    fun when_apply(action: Hanabi.Action): Assertions {
+      return apply(action)
+    }
+
+    private fun apply(action: Hanabi.Action): Assertions {
+      try {
+        game = game!!.apply(action)
+      } catch (ex: Throwable) {
+        game = null
+        exception = ex
+      }
+      return this
+    }
 
     fun then_is_ended(): Assertions {
-      assertThat(game.ended, `is`(true))
+      assertThat(game!!.ended, `is`(true))
       return this
     }
 
     fun then_is_not_ended(): Assertions {
-      assertThat(game.ended, `is`(false))
+      assertThat(game!!.ended, `is`(false))
+      return this
+    }
+
+    fun then_throw_an_illegal_argument_exception(): Assertions {
+      return exception(IllegalArgumentException::class.java)
+    }
+
+    private fun exception(clazz: Class<out Throwable>): Assertions {
+      assertThat(exception, `is`(instanceOf(clazz)))
       return this
     }
   }
