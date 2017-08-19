@@ -1,5 +1,7 @@
 package com.braisgabin.hanabi
 
+import com.braisgabin.mockable.Mockable
+
 class Game(override val deck: List<Card>,
            override val hands: List<Hand>,
            override val table: List<Int>,
@@ -23,6 +25,31 @@ class Game(override val deck: List<Card>,
   }
 }
 
+class GameFactory(private val deckFactory: DeckFactory) {
+
+  fun create(players: Int): Game {
+    return when (players) {
+      2, 3 -> create(players, 5)
+      4, 5 -> create(players, 4)
+      else -> throw IllegalArgumentException()
+    }
+  }
+
+  private fun create(players: Int, cards: Int): Game {
+    val deck = deckFactory.create().toMutableList()
+    val hands = mutableListOf<Hand>()
+    for (player in 0 until players) {
+      val handCards = mutableListOf<Card>()
+      for (i in 0 until cards) {
+        handCards.add(deck.removeAt(deck.size - 1))
+      }
+      hands.add(Hand(handCards))
+    }
+    return Game(deck, hands, listOf(0, 0, 0, 0, 0), 8, 0, null)
+  }
+}
+
+@Mockable
 class DeckFactory(private val shuffle: (MutableList<out Any>) -> Unit) {
 
   fun create(): List<Card> {
