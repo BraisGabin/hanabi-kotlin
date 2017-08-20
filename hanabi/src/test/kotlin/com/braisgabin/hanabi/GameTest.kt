@@ -12,6 +12,7 @@ class GameTest {
     gameBuilder {
       with_fails(3)
     }.build()
+        .assert()
         .then_is_ended()
   }
 
@@ -20,6 +21,7 @@ class GameTest {
     gameBuilder {
       with_fails(2)
     }.build()
+        .assert()
         .then_is_not_ended()
   }
 
@@ -28,6 +30,7 @@ class GameTest {
     gameBuilder {
       with_table(listOf(5, 5, 5, 5, 5))
     }.build()
+        .assert()
         .then_is_ended()
   }
 
@@ -36,6 +39,7 @@ class GameTest {
     gameBuilder {
       with_table(listOf(4, 5, 5, 5, 5))
     }.build()
+        .assert()
         .then_is_not_ended()
   }
 
@@ -44,6 +48,7 @@ class GameTest {
     gameBuilder {
       with_remaining_turn(0)
     }.build()
+        .assert()
         .then_is_ended()
   }
 
@@ -52,6 +57,7 @@ class GameTest {
     gameBuilder {
       with_remaining_turn(2)
     }.build()
+        .assert()
         .then_is_not_ended()
   }
 
@@ -60,6 +66,7 @@ class GameTest {
     gameBuilder {
     }.build()
         .when_apply(object : Hanabi.Action {})
+        .assert()
         .then_throw_an_illegal_argument_exception()
   }
 
@@ -69,6 +76,7 @@ class GameTest {
       with_remaining_turn(0)
     }.build()
         .when_discard_card(0)
+        .assert()
         .then_throw_an_illegal_state_exception()
   }
 
@@ -82,8 +90,8 @@ class GameTest {
     var fails: Int = 0
     var remainingTurns: Int? = null
 
-    fun build(): Assertions {
-      return Assertions(Game(deck, hands, table, hints, fails, remainingTurns))
+    fun build(): Tester {
+      return Tester(Game(deck, hands, table, hints, fails, remainingTurns))
     }
 
     fun with_fails(fails: Int) {
@@ -99,30 +107,34 @@ class GameTest {
     }
   }
 
-  class Assertions(var game: Hanabi?) {
+  class Tester(private var game: Hanabi?) {
     private var exception: Throwable? = null
 
-    fun when_play_card(i: Int): Assertions {
+    fun when_play_card(i: Int): Tester {
       return apply(ActionPlay(i))
     }
 
-    fun when_discard_card(i: Int): Assertions {
+    fun when_discard_card(i: Int): Tester {
       return apply(ActionDiscard(i))
     }
 
-    fun when_gives_a_color_hint(player: Int, color: Int): Assertions {
+    fun when_gives_a_color_hint(player: Int, color: Int): Tester {
       return apply(ActionHintColor(player, color))
     }
 
-    fun when_gives_a_number_hint(player: Int, number: Int): Assertions {
+    fun when_gives_a_number_hint(player: Int, number: Int): Tester {
       return apply(ActionHintNumber(player, number))
     }
 
-    fun when_apply(action: Hanabi.Action): Assertions {
+    fun when_apply(action: Hanabi.Action): Tester {
       return apply(action)
     }
 
-    private fun apply(action: Hanabi.Action): Assertions {
+    fun assert(): Assertions {
+      return Assertions(game, exception)
+    }
+
+    private fun apply(action: Hanabi.Action): Tester {
       try {
         game = game!!.apply(action)
       } catch (ex: Throwable) {
@@ -131,6 +143,9 @@ class GameTest {
       }
       return this
     }
+  }
+
+  class Assertions(private val game: Hanabi?, private val exception: Throwable?) {
 
     fun then_is_ended(): Assertions {
       assertThat(game!!.ended, `is`(true))
