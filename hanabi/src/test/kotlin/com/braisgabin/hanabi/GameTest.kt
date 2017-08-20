@@ -9,78 +9,81 @@ class GameTest {
 
   @Test
   fun ended_for_too_much_fails() {
-    gameBuilder {
+    build {
       with_fails(3)
-    }.build()
-        .assert()
-        .then_is_ended()
+    } assert {
+      then_is_ended()
+    }
   }
 
   @Test
   fun not_ended_because_few_fails() {
-    gameBuilder {
+    build {
       with_fails(2)
-    }.build()
-        .assert()
-        .then_is_not_ended()
+    } assert {
+      then_is_not_ended()
+    }
   }
 
   @Test
   fun ended_because_win() {
-    gameBuilder {
+    build {
       with_table(listOf(5, 5, 5, 5, 5))
-    }.build()
-        .assert()
-        .then_is_ended()
+    } assert {
+      then_is_ended()
+    }
   }
 
   @Test
   fun not_ended_because_no_win() {
-    gameBuilder {
+    build {
       with_table(listOf(4, 5, 5, 5, 5))
-    }.build()
-        .assert()
-        .then_is_not_ended()
+    } assert {
+      then_is_not_ended()
+    }
   }
 
   @Test
   fun ended_because_no_more_turn() {
-    gameBuilder {
+    build {
       with_remaining_turn(0)
-    }.build()
-        .assert()
-        .then_is_ended()
+    } assert {
+      then_is_ended()
+    }
   }
 
   @Test
   fun not_ended_because_more_turn() {
-    gameBuilder {
+    build {
       with_remaining_turn(2)
-    }.build()
-        .assert()
-        .then_is_not_ended()
+    } assert {
+      then_is_not_ended()
+    }
   }
 
   @Test
   fun apply_unknown_action_throws_an_illegal_argument_exception() {
-    gameBuilder {
-    }.build()
-        .when_apply(object : Hanabi.Action {})
-        .assert()
-        .then_throw_an_illegal_argument_exception()
+    test {
+      when_apply(object : Hanabi.Action {})
+    } assert {
+      then_throw_an_illegal_argument_exception()
+    }
   }
 
   @Test
   fun apply_an_action_with_ended_game_throws_an_illegal_state_exception() {
-    gameBuilder {
+    build {
       with_remaining_turn(0)
-    }.build()
-        .when_discard_card(0)
-        .assert()
-        .then_throw_an_illegal_state_exception()
+    } test {
+      when_discard_card(0)
+    } assert {
+      then_throw_an_illegal_state_exception()
+    }
   }
 
-  private fun gameBuilder(func: GameBuilder.() -> Unit) = GameBuilder().apply(func)
+  private fun build(func: GameBuilder.() -> Unit) = GameBuilder().apply(func)
+
+  private fun test(func: Tester.() -> Unit) = GameBuilder().test(func)
 
   class GameBuilder {
     var deck: Hanabi.Deck = Deck(emptyList())
@@ -89,10 +92,6 @@ class GameTest {
     var hints: Int = 8
     var fails: Int = 0
     var remainingTurns: Int? = null
-
-    fun build(): Tester {
-      return Tester(Game(deck, hands, table, hints, fails, remainingTurns))
-    }
 
     fun with_fails(fails: Int) {
       this.fails = fails
@@ -105,69 +104,73 @@ class GameTest {
     fun with_remaining_turn(remainingTurns: Int?) {
       this.remainingTurns = remainingTurns
     }
+
+    infix fun test(func: Tester.() -> Unit): Tester {
+      return Tester(Game(deck, hands, table, hints, fails, remainingTurns)).apply(func)
+    }
+
+    infix fun assert(func: Assertions.() -> Unit): Assertions {
+      return Assertions(Game(deck, hands, table, hints, fails, remainingTurns), null).apply(func)
+    }
   }
 
   class Tester(private var game: Hanabi?) {
     private var exception: Throwable? = null
 
-    fun when_play_card(i: Int): Tester {
-      return apply(ActionPlay(i))
+    fun when_play_card(i: Int) {
+      apply(ActionPlay(i))
     }
 
-    fun when_discard_card(i: Int): Tester {
-      return apply(ActionDiscard(i))
+    fun when_discard_card(i: Int) {
+      apply(ActionDiscard(i))
     }
 
-    fun when_gives_a_color_hint(player: Int, color: Int): Tester {
-      return apply(ActionHintColor(player, color))
+    fun when_gives_a_color_hint(player: Int, color: Int) {
+      apply(ActionHintColor(player, color))
     }
 
-    fun when_gives_a_number_hint(player: Int, number: Int): Tester {
-      return apply(ActionHintNumber(player, number))
+    fun when_gives_a_number_hint(player: Int, number: Int) {
+      apply(ActionHintNumber(player, number))
     }
 
-    fun when_apply(action: Hanabi.Action): Tester {
-      return apply(action)
+    fun when_apply(action: Hanabi.Action) {
+      apply(action)
     }
 
-    fun assert(): Assertions {
-      return Assertions(game, exception)
+    infix fun assert(func: Assertions.() -> Unit): Assertions {
+      return Assertions(game, exception).apply(func)
     }
 
-    private fun apply(action: Hanabi.Action): Tester {
+    private fun apply(action: Hanabi.Action) {
       try {
         game = game!!.apply(action)
       } catch (ex: Throwable) {
         game = null
         exception = ex
       }
-      return this
     }
   }
 
   class Assertions(private val game: Hanabi?, private val exception: Throwable?) {
 
-    fun then_is_ended(): Assertions {
+    fun then_is_ended() {
       assertThat(game!!.ended, `is`(true))
-      return this
     }
 
-    fun then_is_not_ended(): Assertions {
+    fun then_is_not_ended() {
       assertThat(game!!.ended, `is`(false))
-      return this
     }
 
-    fun then_throw_an_illegal_argument_exception(): Assertions {
+    fun then_throw_an_illegal_argument_exception() {
       return exception(IllegalArgumentException::class.java)
     }
 
-    fun then_throw_an_illegal_state_exception(): Assertions {
+    fun then_throw_an_illegal_state_exception() {
       return exception(IllegalStateException::class.java)
     }
 
-    private fun exception(clazz: Class<out Throwable>): Assertions {
+    private fun exception(clazz: Class<out Throwable>) {
       assertThat(exception, `is`(instanceOf(clazz)))
-      return this
     }
   }
 }
