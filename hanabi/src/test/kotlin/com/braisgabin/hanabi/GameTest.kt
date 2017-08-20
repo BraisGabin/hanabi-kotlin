@@ -9,68 +9,70 @@ class GameTest {
 
   @Test
   fun ended_for_too_much_fails() {
-    GameBuilder()
-        .with_fails(3)
-        .build()
+    gameBuilder {
+      with_fails(3)
+    }.build()
         .then_is_ended()
   }
 
   @Test
   fun not_ended_because_few_fails() {
-    GameBuilder()
-        .with_fails(2)
-        .build()
+    gameBuilder {
+      with_fails(2)
+    }.build()
         .then_is_not_ended()
   }
 
   @Test
   fun ended_because_win() {
-    GameBuilder()
-        .with_table(listOf(5, 5, 5, 5, 5))
-        .build()
+    gameBuilder {
+      with_table(listOf(5, 5, 5, 5, 5))
+    }.build()
         .then_is_ended()
   }
 
   @Test
   fun not_ended_because_no_win() {
-    GameBuilder()
-        .with_table(listOf(4, 5, 5, 5, 5))
-        .build()
+    gameBuilder {
+      with_table(listOf(4, 5, 5, 5, 5))
+    }.build()
         .then_is_not_ended()
   }
 
   @Test
   fun ended_because_no_more_turn() {
-    GameBuilder()
-        .with_remaining_turn(0)
-        .build()
+    gameBuilder {
+      with_remaining_turn(0)
+    }.build()
         .then_is_ended()
   }
 
   @Test
   fun not_ended_because_more_turn() {
-    GameBuilder()
-        .with_remaining_turn(2)
-        .build()
+    gameBuilder {
+      with_remaining_turn(2)
+    }.build()
         .then_is_not_ended()
   }
 
   @Test
   fun apply_unknown_action_throws_an_illegal_argument_exception() {
-    GameBuilder()
-        .build()
+    gameBuilder {
+    }.build()
         .when_apply(object : Hanabi.Action {})
         .then_throw_an_illegal_argument_exception()
   }
 
   @Test
   fun apply_an_action_with_ended_game_throws_an_illegal_state_exception() {
-    GameBuilder()
-        .with_remaining_turn(0)
-        .build()
+    gameBuilder {
+      with_remaining_turn(0)
+    }.build()
         .when_discard_card(0)
         .then_throw_an_illegal_state_exception()
   }
+
+  private fun gameBuilder(func: GameBuilder.() -> Unit) = GameBuilder().apply(func)
 
   class GameBuilder {
     var deck: Hanabi.Deck = Deck(emptyList())
@@ -84,19 +86,16 @@ class GameTest {
       return Assertions(Game(deck, hands, table, hints, fails, remainingTurns))
     }
 
-    fun with_fails(fails: Int): GameBuilder {
+    fun with_fails(fails: Int) {
       this.fails = fails
-      return this
     }
 
-    fun with_table(table: List<Int>): GameBuilder {
+    fun with_table(table: List<Int>) {
       this.table = table
-      return this
     }
 
-    fun with_remaining_turn(remainingTurns: Int?): GameBuilder {
+    fun with_remaining_turn(remainingTurns: Int?) {
       this.remainingTurns = remainingTurns
-      return this
     }
   }
 
