@@ -81,17 +81,79 @@ class GameTest {
     }
   }
 
+  @Test
+  fun discard_with_less_than_8_hints_gives_a_hint() {
+    build {
+      with_hints(4)
+    } test {
+      when_discard_card(0)
+    } assert {
+      then_there_are_hints(5)
+    }
+  }
+
+  @Test
+  fun discard_with_8_hints_gives_no_hint() {
+    build {
+      with_hints(8)
+    } test {
+      when_discard_card(0)
+    } assert {
+      then_there_are_hints(8)
+    }
+  }
+
+  @Test
+  fun discard_end_your_turn() {
+    test {
+      when_discard_card(0)
+    } assert {
+      then_play_the_next_player()
+    }
+  }
+
+  @Test
+  fun discard_removes_your_card() {
+    test {
+      when_discard_card(0)
+    } assert {
+      then_you_dont_have_that_card()
+    }
+  }
+
+  @Test
+  fun discard_gives_you_the_next_from_the_deck() {
+    test {
+      when_discard_card(0)
+    } assert {
+      then_you_have_the_next_deck_card()
+    }
+  }
+
+  @Test
+  fun discard_when_there_are_not_more_cards_in_deck_lefts_you_with_a_smaller_hand() {
+    build {
+      with_empty_deck()
+    } test {
+      when_discard_card(0)
+    } assert {
+      then_you_have_a_hand_smaller_by_one()
+    }
+  }
+
   private fun build(func: GameBuilder.() -> Unit) = GameBuilder().apply(func)
 
   private fun test(func: Tester.() -> Unit) = GameBuilder().test(func)
 
   class GameBuilder {
-    var deck: Hanabi.Deck = Deck(emptyList())
-    var hands: List<Hand> = emptyList()
-    var table: List<Int> = listOf(0, 0, 0, 0, 0)
-    var hints: Int = 8
-    var fails: Int = 0
-    var remainingTurns: Int? = null
+    private var deck: Hanabi.Deck? = null
+    private var hands: List<Hand>? = null
+    private var players: Int = 4
+    private var handSize: Int = 4
+    private var table: List<Int> = listOf(0, 0, 0, 0, 0)
+    private var hints: Int = 8
+    private var fails: Int = 0
+    private var remainingTurns: Int? = null
 
     fun with_fails(fails: Int) {
       this.fails = fails
@@ -105,31 +167,74 @@ class GameTest {
       this.remainingTurns = remainingTurns
     }
 
+    fun with_hints(hints: Int): GameBuilder {
+      this.hints = hints
+      return this
+    }
+
+    fun with_empty_deck(): GameBuilder {
+      this.deck = Deck(emptyList())
+      return this
+    }
+
     infix fun test(func: Tester.() -> Unit): Tester {
-      return Tester(Game(deck, hands, table, hints, fails, remainingTurns)).apply(func)
+      return Tester(buildGame()).apply(func)
     }
 
     infix fun assert(func: Assertions.() -> Unit): Assertions {
-      return Assertions(Game(deck, hands, table, hints, fails, remainingTurns), null).apply(func)
+      return Assertions(listOf(buildGame()), null, null).apply(func)
+    }
+
+    private fun buildGame(): Game {
+      var deck = deck
+      if (deck == null) {
+        deck = Deck(List(20, { Card(0, 20 - it) }))
+      }
+      var hands = hands
+      if (hands == null) {
+        hands = mutableListOf()
+        for (player in 0 until players) {
+          val handCards = mutableListOf<Card>()
+          (0 until handSize).mapTo(handCards) { Card(1, it + 1) }
+          hands.add(Hand(handCards))
+        }
+      }
+
+      return Game(deck, hands, table, hints, fails, remainingTurns)
     }
   }
 
-  class Tester(private var game: Hanabi?) {
-    private var exception: Throwable? = null
+  class Tester(game: Hanabi) {
+    private var currentTurn: Hanabi? = game
+    private var exception: RuntimeException? = null
+    private val turns: MutableList<Hanabi> = mutableListOf(game)
+    private var previousPlayedCard: Card? = null
+
+    private fun getGame(): Hanabi {
+      val exception = exception
+      if (exception != null) {
+        throw exception
+      }
+      return currentTurn!!
+    }
 
     fun when_play_card(i: Int) {
+      previousPlayedCard = getGame().hands[0][i]
       apply(ActionPlay(i))
     }
 
     fun when_discard_card(i: Int) {
+      previousPlayedCard = getGame().hands[0][i]
       apply(ActionDiscard(i))
     }
 
-    fun when_gives_a_color_hint(player: Int, color: Int) {
+    fun when_give_a_color_hint(player: Int, color: Int) {
+      previousPlayedCard = null
       apply(ActionHintColor(player, color))
     }
 
-    fun when_gives_a_number_hint(player: Int, number: Int) {
+    fun when_give_a_number_hint(player: Int, number: Int) {
+      previousPlayedCard = null
       apply(ActionHintNumber(player, number))
     }
 
@@ -137,28 +242,40 @@ class GameTest {
       apply(action)
     }
 
-    infix fun assert(func: Assertions.() -> Unit): Assertions {
-      return Assertions(game, exception).apply(func)
-    }
-
     private fun apply(action: Hanabi.Action) {
       try {
-        game = game!!.apply(action)
-      } catch (ex: Throwable) {
-        game = null
+        val game = getGame().apply(action)
+        turns.add(game)
+        this.currentTurn = game
+      } catch (ex: RuntimeException) {
+        currentTurn = null
         exception = ex
       }
     }
+
+    infix fun assert(func: Assertions.() -> Unit): Assertions {
+      return Assertions(turns, exception, previousPlayedCard).apply(func)
+    }
   }
 
-  class Assertions(private val game: Hanabi?, private val exception: Throwable?) {
+  class Assertions(private val turns: List<Hanabi>,
+                   private val exception: Throwable?,
+                   private val previousPlayedCard: Card?) {
+
+    private val currentTurn: Hanabi by lazy {
+      if (exception != null) {
+        throw exception
+      } else {
+        turns.last()
+      }
+    }
 
     fun then_is_ended() {
-      assertThat(game!!.ended, `is`(true))
+      assertThat(currentTurn.ended, `is`(true))
     }
 
     fun then_is_not_ended() {
-      assertThat(game!!.ended, `is`(false))
+      assertThat(currentTurn.ended, `is`(false))
     }
 
     fun then_throw_an_illegal_argument_exception() {
@@ -172,5 +289,34 @@ class GameTest {
     private fun exception(clazz: Class<out Throwable>) {
       assertThat(exception, `is`(instanceOf(clazz)))
     }
+
+    fun then_there_are_hints(hints: Int) {
+      assertThat(currentTurn.hints, `is`(hints))
+    }
+
+    fun then_play_the_next_player() {
+      val lastTurn = previousTurn()
+      assertThat(lastTurn.hands[1], `is`(currentTurn.hands[0]))
+    }
+
+    fun then_you_dont_have_that_card() {
+      assertThat(currentTurn.hands.last().contains(previousPlayedCard!!), `is`(false))
+    }
+
+    fun then_you_have_the_next_deck_card() {
+      val lastTurnDeck = previousTurn().deck
+      val (card, _) = lastTurnDeck.drawCard()
+      assertThat(currentTurn.hands.last().contains(card), `is`(true))
+    }
+
+    fun then_you_have_a_hand_smaller_by_one() {
+      val previousHandSize = previousTurn().hands[0].size
+      val currentHandSize = currentTurn.hands.last().size
+      assertThat(previousHandSize, `is`(currentHandSize + 1))
+    }
+
+    private fun previousTurn() = turns[turns.size - 2]
+
+    private fun Hand.contains(card: Card) = (0 until size).any { this[it] == card }
   }
 }
