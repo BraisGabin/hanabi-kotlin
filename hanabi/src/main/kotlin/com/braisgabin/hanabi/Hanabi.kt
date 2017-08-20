@@ -2,7 +2,7 @@ package com.braisgabin.hanabi
 
 interface Hanabi {
   val ended: Boolean
-  val deck: List<Card>
+  val deck: Deck
   val table: List<Int>
   val hands: List<Hand>
   val hints: Int
@@ -11,7 +11,17 @@ interface Hanabi {
   fun apply(action: Hanabi.Action): Hanabi
 
   interface Action
+
+  interface Deck {
+    val size: Int
+
+    fun drawCard(): DrawCard
+
+    data class DrawCard(val card: Card, val deck: Hanabi.Deck)
+  }
 }
+
+fun Hanabi.Deck.empty() = size <= 0
 
 data class ActionPlay(val cardIndex: Int) : Hanabi.Action
 

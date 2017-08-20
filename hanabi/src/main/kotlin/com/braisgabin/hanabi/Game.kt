@@ -1,8 +1,6 @@
 package com.braisgabin.hanabi
 
-import com.braisgabin.mockable.Mockable
-
-class Game(override val deck: List<Card>,
+class Game(override val deck: Hanabi.Deck,
            override val hands: List<Hand>,
            override val table: List<Int>,
            override val hints: Int,
@@ -36,32 +34,17 @@ class GameFactory(private val deckFactory: DeckFactory) {
   }
 
   private fun create(players: Int, cards: Int): Game {
-    val deck = deckFactory.create().toMutableList()
+    var deck = deckFactory.create()
     val hands = mutableListOf<Hand>()
     for (player in 0 until players) {
       val handCards = mutableListOf<Card>()
       for (i in 0 until cards) {
-        handCards.add(deck.removeAt(deck.size - 1))
+        val (card, nextDeck) = deck.drawCard()
+        deck = nextDeck
+        handCards.add(card)
       }
       hands.add(Hand(handCards))
     }
     return Game(deck, hands, listOf(0, 0, 0, 0, 0), 8, 0, null)
-  }
-}
-
-@Mockable
-class DeckFactory(private val shuffle: (MutableList<out Any>) -> Unit) {
-
-  fun create(): List<Card> {
-    val colorCount = 5
-    val numbers = listOf(1, 1, 1, 2, 2, 3, 3, 4, 4, 5)
-    val deck = mutableListOf<Card>()
-    for (color in 0 until colorCount) {
-      (0 until numbers.size)
-          .map { numbers[it] }
-          .mapTo(deck) { Card(color, it) }
-    }
-    shuffle(deck)
-    return deck
   }
 }

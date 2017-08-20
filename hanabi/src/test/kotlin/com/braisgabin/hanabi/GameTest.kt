@@ -73,7 +73,7 @@ class GameTest {
   }
 
   class GameBuilder {
-    var deck: List<Card> = emptyList()
+    var deck: Hanabi.Deck = Deck(emptyList())
     var hands: List<Hand> = emptyList()
     var table: List<Int> = listOf(0, 0, 0, 0, 0)
     var hints: Int = 8

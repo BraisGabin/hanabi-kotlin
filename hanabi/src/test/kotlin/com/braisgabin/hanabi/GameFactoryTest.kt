@@ -31,7 +31,7 @@ class GameFactoryTest {
   fun setUp() {
     gameFactory = GameFactory(deckFactory)
 
-    `when`(deckFactory.create()).thenReturn(deck(0 until 50))
+    `when`(deckFactory.create()).thenReturn(Deck(cards(0 until 50)))
   }
 
   @Test
@@ -43,7 +43,7 @@ class GameFactoryTest {
   @Test
   fun create_2_player_throw_illegal_exception() {
     val game = gameFactory.create(2)
-    assertThat(game.deck, `is`(deck(0 until 40)))
+    assertThat(game.deck, `is`(Deck(cards(0 until 40)) as Hanabi.Deck))
     assertThat(game.hands, `is`(listOf(
         Hand(hand(45 until 50)),
         Hand(hand(40 until 45))
@@ -57,7 +57,7 @@ class GameFactoryTest {
   @Test
   fun create_3_player_throw_illegal_exception() {
     val game = gameFactory.create(3)
-    assertThat(game.deck, `is`(deck(0 until 35)))
+    assertThat(game.deck, `is`(Deck(cards(0 until 35)) as Hanabi.Deck))
     assertThat(game.hands, `is`(listOf(
         Hand(hand(45 until 50)),
         Hand(hand(40 until 45)),
@@ -72,7 +72,7 @@ class GameFactoryTest {
   @Test
   fun create_4_player_throw_illegal_exception() {
     val game = gameFactory.create(4)
-    assertThat(game.deck, `is`(deck(0 until 34)))
+    assertThat(game.deck, `is`(Deck(cards(0 until 34)) as Hanabi.Deck))
     assertThat(game.hands, `is`(listOf(
         Hand(hand(46 until 50)),
         Hand(hand(42 until 46)),
@@ -88,7 +88,7 @@ class GameFactoryTest {
   @Test
   fun create_5_player_throw_illegal_exception() {
     val game = gameFactory.create(5)
-    assertThat(game.deck, `is`(deck(0 until 30)))
+    assertThat(game.deck, `is`(Deck(cards(0 until 30)) as Hanabi.Deck))
     assertThat(game.hands, `is`(listOf(
         Hand(hand(46 until 50)),
         Hand(hand(42 until 46)),
@@ -108,7 +108,7 @@ class GameFactoryTest {
     gameFactory.create(6)
   }
 
-  private fun deck(range: IntProgression): List<Card> {
+  private fun cards(range: IntProgression): List<Card> {
     val deck = mutableListOf<Card>()
     range
         .mapTo(deck) { Card(it, 1) }
@@ -116,6 +116,6 @@ class GameFactoryTest {
   }
 
   private fun hand(range: IntProgression): List<Card> {
-    return deck(range.reversed())
+    return cards(range.reversed())
   }
 }

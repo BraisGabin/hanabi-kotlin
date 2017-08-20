@@ -10,18 +10,18 @@ class DeckFactoryTest {
   @Test
   fun create_deck() {
     val deckFactory = DeckFactory({})
-    assertThat(deckFactory.create(), `is`(deck()))
+    assertThat(deckFactory.create(), `is`(Deck(cards()) as Hanabi.Deck))
   }
 
   @Test
   fun create_deck_reverse() {
     val deckFactory = DeckFactory({ Collections.reverse(it) })
-    val deck: MutableList<Card> = deck().toMutableList()
-    Collections.reverse(deck)
-    assertThat(deckFactory.create(), `is`(deck.toList()))
+    val cards: MutableList<Card> = cards()
+    Collections.reverse(cards)
+    assertThat(deckFactory.create(), `is`(Deck(cards) as Hanabi.Deck))
   }
 
-  private fun deck(): List<Card> {
+  private fun cards(): MutableList<Card> {
     val colorCount = 5
     val numbers = listOf(1, 1, 1, 2, 2, 3, 3, 4, 4, 5)
     val deck = mutableListOf<Card>()
