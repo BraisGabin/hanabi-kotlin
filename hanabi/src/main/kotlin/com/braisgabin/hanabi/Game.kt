@@ -1,6 +1,6 @@
 package com.braisgabin.hanabi
 
-class Game(override val deck: Hanabi.Deck,
+class Game(override val deck: Deck,
            override val hands: List<Hand>,
            override val table: List<Int>,
            override val hints: Int,
@@ -46,9 +46,9 @@ class Game(override val deck: Hanabi.Deck,
   }
 
   private fun drawCard(cardIndex: Int): CardPosition {
-    val deck: Hanabi.Deck
+    val deck: Deck
     val card: Card?
-    if (this.deck.empty()) {
+    if (this.deck.isEmpty) {
       deck = this.deck
       card = null
     } else {
@@ -63,7 +63,7 @@ class Game(override val deck: Hanabi.Deck,
     return CardPosition(deck, hands)
   }
 
-  private data class CardPosition(val deck: Hanabi.Deck, val hands: List<Hand>)
+  private data class CardPosition(val deck: Deck, val hands: List<Hand>)
 }
 
 class GameFactory(private val deckFactory: DeckFactory) {

@@ -146,7 +146,7 @@ class GameTest {
   private fun test(func: Tester.() -> Unit) = GameBuilder().test(func)
 
   class GameBuilder {
-    private var deck: Hanabi.Deck? = null
+    private var deck: Deck? = null
     private var hands: List<Hand>? = null
     private var players: Int = 4
     private var handSize: Int = 4
@@ -305,7 +305,7 @@ class GameTest {
 
     fun then_you_have_the_next_deck_card() {
       val lastTurnDeck = previousTurn().deck
-      val (card, _) = lastTurnDeck.drawCard()
+      val card = lastTurnDeck.last()
       assertThat(currentTurn.hands.last().contains(card), `is`(true))
     }
 
@@ -318,5 +318,7 @@ class GameTest {
     private fun previousTurn() = turns[turns.size - 2]
 
     private fun Hand.contains(card: Card) = (0 until size).any { this[it] == card }
+
+    private fun Hanabi.Deck.last() = this[size - 1]
   }
 }

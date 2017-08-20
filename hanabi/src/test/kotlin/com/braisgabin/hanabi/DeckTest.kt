@@ -22,22 +22,32 @@ class DeckTest {
 
   @Test
   fun empty() {
-    assertThat(Deck(listOf()).empty(), `is`(true))
+    assertThat(Deck(listOf()).isEmpty, `is`(true))
   }
 
   @Test
   fun no_empty() {
-    assertThat(Deck(listOf(card1)).empty(), `is`(false))
+    assertThat(Deck(listOf(card1)).isEmpty, `is`(false))
   }
 
   @Test
   fun draw_card() {
-    assertThat(Deck(listOf(card1, card2)).drawCard(), `is`(Hanabi.Deck.DrawCard(card2, Deck(listOf(card1)))))
+    assertThat(Deck(listOf(card1, card2)).drawCard(), `is`(Deck.DrawCard(card2, Deck(listOf(card1)))))
   }
 
   @Test
   fun draw_card_with_empty_deck_trows_IllegalStateException() {
     thrown.expect(IllegalStateException::class.java)
     Deck(listOf()).drawCard()
+  }
+
+  @Test
+  fun get_0() {
+    assertThat(Deck(listOf(card1, card2))[0], `is`(card1))
+  }
+
+  @Test
+  fun get_1() {
+    assertThat(Deck(listOf(card1, card2))[1], `is`(card2))
   }
 }

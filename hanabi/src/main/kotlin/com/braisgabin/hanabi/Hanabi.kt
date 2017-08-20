@@ -15,13 +15,9 @@ interface Hanabi {
   interface Deck {
     val size: Int
 
-    fun drawCard(): DrawCard
-
-    data class DrawCard(val card: Card, val deck: Hanabi.Deck)
+    operator fun get(i: Int): Card
   }
 }
-
-fun Hanabi.Deck.empty() = size <= 0
 
 data class ActionPlay(val cardIndex: Int) : Hanabi.Action
 
