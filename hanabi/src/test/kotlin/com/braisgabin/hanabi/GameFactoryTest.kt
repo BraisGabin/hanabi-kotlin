@@ -48,7 +48,7 @@ class GameFactoryTest {
         Hand(hand(45 until 50)),
         Hand(hand(40 until 45))
     )))
-    assertThat(game.table, `is`(listOf(0, 0, 0, 0, 0)))
+    assertThat(game.table, `is`(Table(listOf(0, 0, 0, 0, 0)) as Hanabi.Table))
     assertThat(game.hints, `is`(8))
     assertThat(game.fails, `is`(0))
     assertThat(game.ended, `is`(false))
@@ -63,7 +63,7 @@ class GameFactoryTest {
         Hand(hand(40 until 45)),
         Hand(hand(35 until 40))
     )))
-    assertThat(game.table, `is`(listOf(0, 0, 0, 0, 0)))
+    assertThat(game.table, `is`(Table(listOf(0, 0, 0, 0, 0)) as Hanabi.Table))
     assertThat(game.hints, `is`(8))
     assertThat(game.fails, `is`(0))
     assertThat(game.ended, `is`(false))
@@ -79,7 +79,7 @@ class GameFactoryTest {
         Hand(hand(38 until 42)),
         Hand(hand(34 until 38))
     )))
-    assertThat(game.table, `is`(listOf(0, 0, 0, 0, 0)))
+    assertThat(game.table, `is`(Table(listOf(0, 0, 0, 0, 0)) as Hanabi.Table))
     assertThat(game.hints, `is`(8))
     assertThat(game.fails, `is`(0))
     assertThat(game.ended, `is`(false))
@@ -96,7 +96,7 @@ class GameFactoryTest {
         Hand(hand(34 until 38)),
         Hand(hand(30 until 34))
     )))
-    assertThat(game.table, `is`(listOf(0, 0, 0, 0, 0)))
+    assertThat(game.table, `is`(Table(listOf(0, 0, 0, 0, 0)) as Hanabi.Table))
     assertThat(game.hints, `is`(8))
     assertThat(game.fails, `is`(0))
     assertThat(game.ended, `is`(false))

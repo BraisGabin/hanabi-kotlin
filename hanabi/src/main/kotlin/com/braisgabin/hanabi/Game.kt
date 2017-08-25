@@ -2,12 +2,12 @@ package com.braisgabin.hanabi
 
 class Game(override val deck: Deck,
            override val hands: List<Hand>,
-           override val table: List<Int>,
+           override val table: Table,
            override val hints: Int,
            override val fails: Int,
            private val remainingTurns: Int?) : Hanabi {
   override val ended: Boolean
-    get() = fails >= 3 || table.sum() >= 25 || if (remainingTurns == null) false else remainingTurns <= 0
+    get() = fails >= 3 || table.points >= 25 || if (remainingTurns == null) false else remainingTurns <= 0
 
   companion object {
     private fun nextPlayer(hands: List<Hand>): List<Hand> {
@@ -88,6 +88,6 @@ class GameFactory(private val deckFactory: DeckFactory) {
       }
       hands.add(Hand(handCards))
     }
-    return Game(deck, hands, listOf(0, 0, 0, 0, 0), 8, 0, null)
+    return Game(deck, hands, Table(listOf(0, 0, 0, 0, 0)), 8, 0, null)
   }
 }

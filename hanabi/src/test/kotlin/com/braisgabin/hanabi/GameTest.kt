@@ -150,7 +150,7 @@ class GameTest {
     private var hands: List<Hand>? = null
     private var players: Int = 4
     private var handSize: Int = 4
-    private var table: List<Int> = listOf(0, 0, 0, 0, 0)
+    private var table: Table = Table(listOf(0, 0, 0, 0, 0))
     private var hints: Int = 8
     private var fails: Int = 0
     private var remainingTurns: Int? = null
@@ -160,7 +160,7 @@ class GameTest {
     }
 
     fun with_table(table: List<Int>) {
-      this.table = table
+      this.table = Table(table)
     }
 
     fun with_remaining_turn(remainingTurns: Int?) {

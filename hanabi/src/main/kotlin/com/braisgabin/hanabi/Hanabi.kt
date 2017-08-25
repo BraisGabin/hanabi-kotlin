@@ -3,7 +3,7 @@ package com.braisgabin.hanabi
 interface Hanabi {
   val ended: Boolean
   val deck: Deck
-  val table: List<Int>
+  val table: Table
   val hands: List<Hand>
   val hints: Int
   val fails: Int
@@ -16,6 +16,12 @@ interface Hanabi {
     val size: Int
 
     operator fun get(i: Int): Card
+  }
+
+  interface Table {
+    val size: Int
+
+    operator fun get(i: Int): Int
   }
 }
 
