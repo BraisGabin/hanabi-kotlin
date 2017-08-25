@@ -22,12 +22,33 @@ class Game(override val deck: Deck,
       throw IllegalStateException("The game is over")
     }
     return when (action) {
-      is ActionPlay -> TODO("not implemented")
+      is ActionPlay -> play(action.cardIndex)
       is ActionDiscard -> discard(action.cardIndex)
       is ActionHintColor -> TODO("not implemented")
       is ActionHintNumber -> TODO("not implemented")
       else -> throw IllegalArgumentException("Unknown action $action")
     }
+  }
+
+  private fun play(cardIndex: Int): Hanabi {
+    var hints: Int
+    var fails: Int
+    var table: Table
+
+    try {
+      val card = hands[0][cardIndex]
+      table = this.table.playCard(card)
+      hints = if (card.number == 5) minOf(8, this.hints + 1) else this.hints
+      fails = this.fails
+    } catch (ex: Table.UnplayableCardException) {
+      table = this.table
+      hints = this.hints
+      fails = this.fails + 1
+    }
+
+    val (deck, hands) = drawCard(cardIndex)
+
+    return Game(deck, nextPlayer(hands), table, hints, fails, calculateRemainingTurns())
   }
 
   private fun discard(cardIndex: Int): Hanabi {

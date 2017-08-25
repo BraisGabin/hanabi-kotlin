@@ -141,6 +141,103 @@ class GameTest {
     }
   }
 
+  @Test
+  fun play_with_an_incorrect_card_increase_the_fails_by_1() {
+    build {
+      with_table(listOf(3, 0, 0))
+      with_hints(4)
+      with_fails(0)
+      with_playable_hand(listOf(Card(0, 3), Card(1, 5), Card(2, 5), Card(3, 5)))
+    } test {
+      when_play_card(0)
+    } assert {
+      then_there_are_fails(1)
+      then_there_are_hints(4)
+      then_there_are_table(listOf(3, 0, 0))
+    }
+  }
+
+  @Test
+  fun play_with_a_correct_card_increase_the_table_value_at_that_color_and_not_changes_hints() {
+    build {
+      with_table(listOf(3, 0, 0))
+      with_hints(4)
+      with_playable_hand(listOf(Card(0, 4), Card(1, 5), Card(2, 5), Card(3, 5)))
+    } test {
+      when_play_card(0)
+    } assert {
+      then_there_are_fails(0)
+      then_there_are_hints(4)
+      then_there_are_table(listOf(4, 0, 0))
+    }
+  }
+
+  @Test
+  fun play_with_a_correct_5card_increases_hints_by_1_if_less_than_8() {
+    build {
+      with_table(listOf(4, 0, 0))
+      with_hints(4)
+      with_playable_hand(listOf(Card(0, 5), Card(1, 5), Card(2, 5), Card(3, 5)))
+    } test {
+      when_play_card(0)
+    } assert {
+      then_there_are_hints(5)
+      then_there_are_table(listOf(5, 0, 0))
+    }
+  }
+
+  @Test
+  fun play_with_a_correct_5card_not_increases_hints_by_1_if_there_are_8() {
+    build {
+      with_table(listOf(4, 0, 0))
+      with_hints(8)
+      with_playable_hand(listOf(Card(0, 5), Card(1, 5), Card(2, 5), Card(3, 5)))
+    } test {
+      when_play_card(0)
+    } assert {
+      then_there_are_hints(8)
+      then_there_are_table(listOf(5, 0, 0))
+    }
+  }
+
+  @Test
+  fun play_end_your_turn() {
+    test {
+      when_play_card(0)
+    } assert {
+      then_play_the_next_player()
+    }
+  }
+
+  @Test
+  fun play_removes_your_card() {
+    test {
+      when_play_card(0)
+    } assert {
+      then_you_dont_have_that_card()
+    }
+  }
+
+  @Test
+  fun play_gives_you_the_next_from_the_deck() {
+    test {
+      when_play_card(0)
+    } assert {
+      then_you_have_the_next_deck_card()
+    }
+  }
+
+  @Test
+  fun play_when_there_are_not_more_cards_in_deck_lefts_you_with_a_smaller_hand() {
+    build {
+      with_empty_deck()
+    } test {
+      when_play_card(0)
+    } assert {
+      then_you_have_a_hand_smaller_by_one()
+    }
+  }
+
   private fun build(func: GameBuilder.() -> Unit) = GameBuilder().apply(func)
 
   private fun test(func: Tester.() -> Unit) = GameBuilder().test(func)
@@ -150,6 +247,7 @@ class GameTest {
     private var hands: List<Hand>? = null
     private var players: Int = 4
     private var handSize: Int = 4
+    private var playableHand: Hand? = null
     private var table: Table = Table(listOf(0, 0, 0, 0, 0))
     private var hints: Int = 8
     private var fails: Int = 0
@@ -157,6 +255,10 @@ class GameTest {
 
     fun with_fails(fails: Int) {
       this.fails = fails
+    }
+
+    fun with_playable_hand(cards: List<Card>) {
+      playableHand = Hand(cards)
     }
 
     fun with_table(table: List<Int>) {
@@ -193,7 +295,11 @@ class GameTest {
       var hands = hands
       if (hands == null) {
         hands = mutableListOf()
-        for (player in 0 until players) {
+        val playableHand = playableHand
+        if (playableHand != null) {
+          hands.add(playableHand)
+        }
+        for (player in hands.size until players) {
           val handCards = mutableListOf<Card>()
           (0 until handSize).mapTo(handCards) { Card(1, it + 1) }
           hands.add(Hand(handCards))
@@ -294,6 +400,10 @@ class GameTest {
       assertThat(currentTurn.hints, `is`(hints))
     }
 
+    fun then_there_are_fails(fails: Int) {
+      assertThat(currentTurn.fails, `is`(fails))
+    }
+
     fun then_play_the_next_player() {
       val lastTurn = previousTurn()
       assertThat(lastTurn.hands[1], `is`(currentTurn.hands[0]))
@@ -313,6 +423,10 @@ class GameTest {
       val previousHandSize = previousTurn().hands[0].size
       val currentHandSize = currentTurn.hands.last().size
       assertThat(previousHandSize, `is`(currentHandSize + 1))
+    }
+
+    fun then_there_are_table(table: List<Int>) {
+      assertThat(currentTurn.table as Table, `is`(Table(table)))
     }
 
     private fun previousTurn() = turns[turns.size - 2]
