@@ -24,8 +24,8 @@ class Game(override val deck: Deck,
     return when (action) {
       is ActionPlay -> play(action.cardIndex)
       is ActionDiscard -> discard(action.cardIndex)
-      is ActionHintColor -> TODO("not implemented")
-      is ActionHintNumber -> TODO("not implemented")
+      is ActionHintColor -> hint(action.player, { it.hasColor(action.color) })
+      is ActionHintNumber -> hint(action.player, { it.hasColor(action.number) })
       else -> throw IllegalArgumentException("Unknown action $action")
     }
   }
@@ -56,6 +56,19 @@ class Game(override val deck: Deck,
     val (deck, hands) = drawCard(cardIndex)
 
     return Game(deck, nextPlayer(hands), table, hints, fails, calculateRemainingTurns())
+  }
+
+  private fun hint(player: Int, valid: (Hand) -> Boolean): Hanabi {
+    if (player <= 0 || player > hands.size) {
+      throw IllegalArgumentException("Invalid player id.")
+    }
+    if (!valid(hands[player])) {
+      throw IllegalArgumentException("You can't give this hint.")
+    }
+    if (hints <= 0) {
+      throw IllegalStateException("There are not hints.")
+    }
+    return Game(deck, hands, table, hints - 1, fails, remainingTurns)
   }
 
   private fun calculateRemainingTurns(): Int? {

@@ -238,6 +238,110 @@ class GameTest {
     }
   }
 
+  @Test
+  fun color_hint_to_yourself() {
+    build {
+    } test {
+      when_give_a_color_hint(0, 1)
+    } assert {
+      then_throw_an_illegal_argument_exception()
+    }
+  }
+
+  @Test
+  fun color_hint_to_unknown_player() {
+    build {
+    } test {
+      when_give_a_color_hint(6, 1)
+    } assert {
+      then_throw_an_illegal_argument_exception()
+    }
+  }
+
+  @Test
+  fun color_hint_to_player_that_doesnt_have() {
+    build {
+    } test {
+      when_give_a_color_hint(1, 2)
+    } assert {
+      then_throw_an_illegal_argument_exception()
+    }
+  }
+
+  @Test
+  fun color_hint_without_hints() {
+    build {
+      with_hints(0)
+    } test {
+      when_give_a_color_hint(1, 1)
+    } assert {
+      then_throw_an_illegal_state_exception()
+    }
+  }
+
+  @Test
+  fun color_hint_reduce_hints() {
+    build {
+      with_hints(4)
+    } test {
+      when_give_a_color_hint(1, 1)
+    } assert {
+      then_there_are_hints(3)
+    }
+  }
+
+  @Test
+  fun number_hint_to_yourself() {
+    build {
+    } test {
+      when_give_a_number_hint(0, 1)
+    } assert {
+      then_throw_an_illegal_argument_exception()
+    }
+  }
+
+  @Test
+  fun number_hint_to_unknown_player() {
+    build {
+    } test {
+      when_give_a_number_hint(6, 1)
+    } assert {
+      then_throw_an_illegal_argument_exception()
+    }
+  }
+
+  @Test
+  fun number_hint_to_player_that_doesnt_have() {
+    build {
+    } test {
+      when_give_a_number_hint(1, 8)
+    } assert {
+      then_throw_an_illegal_argument_exception()
+    }
+  }
+
+  @Test
+  fun number_hint_without_hints() {
+    build {
+      with_hints(0)
+    } test {
+      when_give_a_number_hint(1, 1)
+    } assert {
+      then_throw_an_illegal_state_exception()
+    }
+  }
+
+  @Test
+  fun number_hint_reduce_hints() {
+    build {
+      with_hints(4)
+    } test {
+      when_give_a_number_hint(1, 1)
+    } assert {
+      then_there_are_hints(3)
+    }
+  }
+
   private fun build(func: GameBuilder.() -> Unit) = GameBuilder().apply(func)
 
   private fun test(func: Tester.() -> Unit) = GameBuilder().test(func)
